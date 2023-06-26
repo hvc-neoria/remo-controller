@@ -1,5 +1,4 @@
 # remoCommander-controller
-Nature remoCommanderをAPIから操作するためのGASのソースコード。
 ```mermaid
 classDiagram
 
