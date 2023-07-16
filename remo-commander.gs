@@ -19,6 +19,36 @@ const decrementTemperature = () => {
 }
 
 /**
+ * 設定温度を0.5度上げる
+ * @return {Number} 変更後の設定温度
+ */
+const increaseHalfDegree = () => {
+  const airconTemp = getAirconTemp()
+  const remoteSheet = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("spreadSheetId")).getSheetByName("remote")
+  const sheetTemp = remoteSheet.getRange(3, 1).getValue()
+  const preferredTemp = Math.abs(airconTemp - sheetTemp) <= 0.5 ? sheetTemp : airconTemp
+  const newTemp = preferredTemp + 0.5
+  setAirconTemp(newTemp)
+  remoteSheet.getRange(3, 1).setValue(newTemp)
+  return newTemp;
+}
+
+/**
+ * 設定温度を1度下げる
+ * @return {Number} 変更後の設定温度
+ */
+const decreaseHalfDegree = () => {
+  const airconTemp = getAirconTemp()
+  const remoteSheet = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("spreadSheetId")).getSheetByName("remote")
+  const sheetTemp = remoteSheet.getRange(3, 1).getValue()
+  const preferredTemp = Math.abs(airconTemp - sheetTemp) <= 0.5 ? sheetTemp : airconTemp
+  const newTemp = preferredTemp - 0.5
+  setAirconTemp(newTemp)
+  remoteSheet.getRange(3, 1).setValue(newTemp)
+  return newTemp;
+}
+
+/**
  * Remoのセンサーの値を取得する。
  * @return {Object} Remoのセンサーの値
  */
@@ -35,7 +65,7 @@ const getAirconTemp = () => {
   const data = JSON.parse(UrlFetchApp.fetch(def.appliancesUrl, def.gettingOptions))
 
   // 私の環境の場合インデックスが4のデータがエアコンだったため、インデックスを4としている。
-  if(data[4].id !== PropertiesService.getScriptProperties().getProperty("airconId")) {
+  if (data[4].id !== PropertiesService.getScriptProperties().getProperty("airconId")) {
     throw new Error("家電データの5番目のIDが、エアコンのIDではありませんでした。")
   }
   const temp = data[4].settings.temp
@@ -44,14 +74,56 @@ const getAirconTemp = () => {
 }
 
 /**
+ * 風量を取得する。
+ * @return {number} 風量
+ */
+const getAirconVolume = () => {
+  const data = JSON.parse(UrlFetchApp.fetch(def.appliancesUrl, def.gettingOptions))
+
+  // 私の環境の場合インデックスが4のデータがエアコンだったため、インデックスを4としている。
+  if (data[4].id !== PropertiesService.getScriptProperties().getProperty("airconId")) {
+    throw new Error("家電データの5番目のIDが、エアコンのIDではありませんでした。")
+  }
+  const volume = data[4].settings.vol
+  const volumeInt = parseInt(volume)
+  return volumeInt
+}
+
+
+/**
  * 設定温度を設定する。
  * @param {number} temp 設定温度
  * @return {Object} 設定後のエアコンの設定
  */
 const setAirconTemp = temp => {
+  if (Number.isInteger(temp)) {
+    const optionsWithPayload = Object.assign({}, def.postingOptions)
+    optionsWithPayload.payload = "temperature=" + temp
+    return JSON.parse(UrlFetchApp.fetch(def.airconSettingsUrl, optionsWithPayload))
+  }
   const optionsWithPayload = Object.assign({}, def.postingOptions)
-  optionsWithPayload.payload = "temperature=" + temp
-  return JSON.parse(UrlFetchApp.fetch(def.airconSettingsUrl, optionsWithPayload))
+  if(getAirconVolume() === 3)
+  {
+    if(temp === 26.5) {
+      return JSON.parse(UrlFetchApp.fetch(def.aircon26Dot5DegreeVolume3Url, optionsWithPayload))
+    }
+    if(temp === 25.5) {
+      return JSON.parse(UrlFetchApp.fetch(def.aircon25Dot5DegreeVolume3Url, optionsWithPayload))
+    }
+    if(temp === 24.5) {
+      return JSON.parse(UrlFetchApp.fetch(def.aircon24Dot5DegreeVolume3Url, optionsWithPayload))
+    }
+  }
+  if(temp === 26.5) {
+    return JSON.parse(UrlFetchApp.fetch(def.aircon26Dot5DegreeVolume2Url, optionsWithPayload))
+  }
+  if(temp === 25.5) {
+    return JSON.parse(UrlFetchApp.fetch(def.aircon25Dot5DegreeVolume2Url, optionsWithPayload))
+  }
+  if(temp === 24.5) {
+    return JSON.parse(UrlFetchApp.fetch(def.aircon24Dot5DegreeVolume2Url, optionsWithPayload))
+  }
+  throw new Error("指定した設定温度は対応しておりません。")
 }
 
 /**

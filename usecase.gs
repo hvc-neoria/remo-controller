@@ -63,3 +63,19 @@ const setTemparature = () => {
   const airVolume = configSheet.getRange(16, 2).getValue()
   setAirVolume(airVolume)
 }
+
+/**
+ * シート編集時に実行する。
+ */
+const onEdit = () => {
+  const sheet = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("spreadSheetId")).getSheetByName("remote")
+  if(sheet.getRange("A1").getValue())
+  {
+    increaseHalfDegree()
+  }
+  if(sheet.getRange("A2").getValue())
+  {
+    decreaseHalfDegree()
+  }
+  sheet.getRange("A1:A2").uncheck()
+}
