@@ -46,9 +46,9 @@ const log = () => {
 }
 
 /**
- * 設定温度を設定する。
+ * エアコンの設定を設定する。
  */
-const setTemparature = () => {
+const setAirconSettings = () => {
   const configSheet = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("spreadSheetId")).getSheetByName("config")
 
   const enabled = configSheet.getRange(13, 2).getValue()
@@ -58,10 +58,10 @@ const setTemparature = () => {
   if(new Date().getHours() !== hour) return
 
   const temp = configSheet.getRange(15, 2).getValue()
-  setTemparature(temp)
+  if(temp !== "") setAirconTemp(temp)
 
   const airVolume = configSheet.getRange(16, 2).getValue()
-  setAirVolume(airVolume)
+  if(airVolume !== "")  setAirVolume(airVolume)
 }
 
 /**
